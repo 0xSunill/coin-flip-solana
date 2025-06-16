@@ -26,7 +26,7 @@ export default function FlipPage() {
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-br from-[#0f0f0f] to-[#1f1f1f] text-white flex flex-col items-center justify-center p-6">
+        <div >
 
 
             <div className="text-center mb-8">
@@ -97,6 +97,6 @@ export default function FlipPage() {
                 {error && <p className="text-red-400 text-center text-sm">{error}</p>}
                 {result && <p className="text-center text-lg font-medium">{result}</p>}
             </div>
-        </main>
+        </div>
     );
 }
