@@ -1,0 +1,46 @@
+.coin-container {
+    perspective: 1000px;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+  }
+  
+  .coin {
+    width: 100px;
+    height: 100px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 2s ease-in-out;
+  }
+  
+  .side {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    background: gold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  
+  .heads {
+    transform: rotateY(0deg);
+  }
+  
+  .tails {
+    transform: rotateY(180deg);
+  }
+  
+  /* Animation classes */
+  .coin.heads {
+    transform: rotateY(1440deg); /* 4 spins, ends on heads */
+  }
+  
+  .coin.tails {
+    transform: rotateY(1620deg); /* 4.5 spins, ends on tails */
+  }
+  

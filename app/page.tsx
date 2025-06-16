@@ -1,9 +1,10 @@
+import FlipPage from "@/components/FlipPage";
 
 
 export default function Home() {
   return (
     <div>
-      hello sunil
+      <FlipPage />
     </div>
   );
 }
