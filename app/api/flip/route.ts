@@ -38,21 +38,21 @@ export async function POST(req: Request) {
           });
         }
 
-        const reward = Math.floor(betLamports * 2 * 0.95);
-        const tx = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: treasuryPubkey,
-            toPubkey: userPubkey,
-            lamports: reward,
-          })
-        );
+        // const reward = Math.floor(betLamports * 2 * 0.95);
+        // const tx = new Transaction().add(
+        //   SystemProgram.transfer({
+        //     fromPubkey: treasuryPubkey,
+        //     toPubkey: userPubkey,
+        //     lamports: reward,
+        //   })
+        // );
 
-        const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
+        // const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
 
         return NextResponse.json({
           result: flipResult,
           status: 'won',
-          signature,
+        //   signature,
         });
     } catch (error: any) {
         console.error(error);

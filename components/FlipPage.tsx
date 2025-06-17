@@ -13,7 +13,7 @@ export default function FlipPage() {
     const [error, setError] = useState<string | null>(null);
     const [flipping, setFlipping] = useState(false);
     const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
-
+    const [pendingResult, setPendingResult] = useState<any>(null);
     const { publicKey, connected } = useWallet();
     const { connection } = useConnection();
     const [walletAddress, setWalletAddress] = useState('');
@@ -26,7 +26,6 @@ export default function FlipPage() {
 
 
     const handleFlip = async () => {
-
         if (!selectedBet || !choice) {
             setError('Please select bet amount and side.');
             return;
@@ -36,6 +35,7 @@ export default function FlipPage() {
             setError('Please connect your wallet.');
             return;
         }
+
         setFlipping(true);
         setResult(null);
         setError(null);
@@ -48,26 +48,15 @@ export default function FlipPage() {
                 userAddress: walletAddress,
                 amount: selectedBet,
                 side: choice,
-               
-            })
+            }),
         });
-
 
         const data = await res.json();
 
+        setCoinFace(data.result); // Start coin animation
 
-        setTimeout(() => {
-            setCoinFace(data.result);
-
-            if (data.status === 'won') {
-                setResult(`🎉 You won! Coin landed on ${data.result}`);
-            } else {
-                setResult(`😢 You lost! Coin landed on ${data.result}`);
-            }
-            setFlipping(false);
-        }, 3000);
-
-
+        // Show result after animation ends (see below)
+        setPendingResult(data);
     };
 
     const isDisabled = !selectedBet || !choice || !connected || flipping;
@@ -81,7 +70,23 @@ export default function FlipPage() {
 
             <div className="w-full max-w-md bg-[#2b2b2b] p-6 rounded-2xl shadow-lg space-y-6">
                 <div className="text-center mb-8">
-                    <Coin result={coinFace} />
+                    <Coin
+                        result={coinFace}
+                        flipping={flipping}
+                        onAnimationEnd={() => {
+                            if (pendingResult) {
+                                const data = pendingResult;
+                                if (data.status === 'won') {
+                                    setResult(`🎉 You won! Coin landed on ${data.result}`);
+                                } else {
+                                    setResult(`😢 You lost! Coin landed on ${data.result}`);
+                                }
+                                setFlipping(false);
+                                setPendingResult(null);
+                            }
+                        }}
+                    />
+
                 </div>
 
                 <div>
