@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Coin from '@/components/Coin';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import {  useWallet } from '@solana/wallet-adapter-react';
 
 const betOptions = [0.1, 0.25, 0.5, 0.75, 1];
+type FlipResult = {
+    result: 'heads' | 'tails';
+    status: 'won' | 'lost';
+    message?: string;
+  };
+  
 
 export default function FlipPage() {
     const [selectedBet, setSelectedBet] = useState<number | null>(null);
@@ -13,9 +19,9 @@ export default function FlipPage() {
     const [error, setError] = useState<string | null>(null);
     const [flipping, setFlipping] = useState(false);
     const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
-    const [pendingResult, setPendingResult] = useState<any>(null);
+    const [pendingResult, setPendingResult] = useState<FlipResult>(null);
     const { publicKey, connected } = useWallet();
-    const { connection } = useConnection();
+    // const { connection } = useConnection();
     const [walletAddress, setWalletAddress] = useState('');
 
     useEffect(() => {
