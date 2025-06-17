@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Coin from '@/components/Coin';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 
 const betOptions = [0.1, 0.25, 0.5, 0.75, 1];
 
@@ -12,11 +12,23 @@ export default function FlipPage() {
     const [result, setResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [flipping, setFlipping] = useState(false);
-    const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
+    // const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
 
-    const { connected } = useWallet();
+    const { publicKey, connected } = useWallet();
+    // const { connection } = useConnection();
+    const [walletAddress, setWalletAddress] = useState('');
 
-    const handleFlip = () => {
+    useEffect(() => {
+        if (connected && publicKey) {
+            setWalletAddress(publicKey.toBase58());
+        }
+    }, [connected, publicKey]);
+
+
+    const handleFlip = async () => {
+
+
+
         if (!selectedBet || !choice) {
             setError('Please select bet amount and side.');
             return;
@@ -27,25 +39,46 @@ export default function FlipPage() {
             return;
         }
 
+
+
+        const res = await fetch('/api/flip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userAddress: walletAddress,
+                amount: selectedBet,
+                side: choice
+            })
+        });
+
         setFlipping(true);
         setResult(null);
         setError(null);
 
-        const flip = Math.random() < 0.5 ? 'heads' : 'tails';
-        setCoinFace(null); // reset coin
-        setCoinFace(flip);
-        setTimeout(() => {
+
+        // const data = await res.json();
 
 
-            const won = flip === choice;
-            setResult(
-                won
-                    ? `🎉 You won! Coin landed on ${flip.toUpperCase()}`
-                    : `😢 You lost! Coin landed on ${flip.toUpperCase()}`
-            );
+        // if (data.status === 'won') {
+        //     setResult(`🎉 You won! Coin landed on ${data.result}`);
+        // } else {
+        //     setResult(`😢 You lost! Coin landed on ${data.result}`);
+        // }
 
-            setFlipping(false);
-        }, 3000);
+        // const flip = Math.random() < 0.5 ? 'heads' : 'tails';
+        // setCoinFace(null); 
+        // setCoinFace(flip);
+        // setTimeout(() => {
+
+        //     const won = flip === choice;
+        //     setResult(
+        //         won
+        //             ? `🎉 You won! Coin landed on ${flip.toUpperCase()}`
+        //             : `😢 You lost! Coin landed on ${flip.toUpperCase()}`
+        //     );
+
+        //     setFlipping(false);
+        // }, 3000);
     };
 
     const isDisabled = !selectedBet || !choice || !connected || flipping;
@@ -59,7 +92,7 @@ export default function FlipPage() {
 
             <div className="w-full max-w-md bg-[#2b2b2b] p-6 rounded-2xl shadow-lg space-y-6">
                 <div className="text-center mb-8">
-                    <Coin result={coinFace} />
+                    {/* <Coin result={coinFace} /> */}
                 </div>
 
                 <div>
@@ -71,8 +104,8 @@ export default function FlipPage() {
                                 onClick={() => setSelectedBet(amount)}
                                 disabled={flipping}
                                 className={`flex-1 py-2 rounded-lg font-medium transition ${selectedBet === amount
-                                        ? 'bg-yellow-500 text-black'
-                                        : 'bg-gray-700 hover:bg-gray-600'
+                                    ? 'bg-yellow-500 text-black'
+                                    : 'bg-gray-700 hover:bg-gray-600'
                                     }`}
                             >
                                 {amount}
@@ -88,8 +121,8 @@ export default function FlipPage() {
                             onClick={() => setChoice('heads')}
                             disabled={flipping}
                             className={`w-1/2 py-3 rounded-lg text-lg flex items-center justify-center gap-2 transition ${choice === 'heads'
-                                    ? 'bg-green-500 text-black'
-                                    : 'bg-gray-700 hover:bg-gray-600'
+                                ? 'bg-green-500 text-black'
+                                : 'bg-gray-700 hover:bg-gray-600'
                                 }`}
                         >
                             🧠 Heads
@@ -98,8 +131,8 @@ export default function FlipPage() {
                             onClick={() => setChoice('tails')}
                             disabled={flipping}
                             className={`w-1/2 py-3 rounded-lg text-lg flex items-center justify-center gap-2 transition ${choice === 'tails'
-                                    ? 'bg-blue-500 text-black'
-                                    : 'bg-gray-700 hover:bg-gray-600'
+                                ? 'bg-blue-500 text-black'
+                                : 'bg-gray-700 hover:bg-gray-600'
                                 }`}
                         >
                             🌀 Tails
@@ -112,8 +145,8 @@ export default function FlipPage() {
                         onClick={handleFlip}
                         disabled={isDisabled}
                         className={`w-full py-3 rounded-xl font-semibold text-lg transition ${isDisabled
-                                ? 'bg-gray-600 cursor-not-allowed'
-                                : 'bg-purple-600 hover:bg-purple-500'
+                            ? 'bg-gray-600 cursor-not-allowed'
+                            : 'bg-purple-600 hover:bg-purple-500'
                             }`}
                     >
                         {flipping ? 'Flipping...' : 'Flip Coin'}
