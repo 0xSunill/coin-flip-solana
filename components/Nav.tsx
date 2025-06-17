@@ -7,6 +7,13 @@ import Link from 'next/link';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 const Nav: FC = () => {
+    // const [isClient, setIsClient] = useState(false);
+
+    // useEffect(() => {
+    //     setIsClient(true);
+    // }, []);
+
+    // if (!isClient) return null;
     return (
         <nav className="absolute top-0 right-0 left-0 w-full flex justify-between items-center px-10 py-4 bg-gray-900 text-white shadow-md">
             <Link href="/" className="text-2xl font-bold tracking-wide text-yellow-400 hover:text-yellow-300 transition duration-200">
