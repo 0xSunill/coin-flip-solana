@@ -15,7 +15,7 @@ export default function FlipPage() {
     const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
 
     const { publicKey, connected } = useWallet();
-    // const { connection } = useConnection();
+    const { connection } = useConnection();
     const [walletAddress, setWalletAddress] = useState('');
 
     useEffect(() => {
@@ -26,8 +26,6 @@ export default function FlipPage() {
 
 
     const handleFlip = async () => {
-
-
 
         if (!selectedBet || !choice) {
             setError('Please select bet amount and side.');
@@ -49,11 +47,10 @@ export default function FlipPage() {
             body: JSON.stringify({
                 userAddress: walletAddress,
                 amount: selectedBet,
-                side: choice
+                side: choice,
+               
             })
         });
-
-
 
 
         const data = await res.json();
@@ -84,7 +81,7 @@ export default function FlipPage() {
 
             <div className="w-full max-w-md bg-[#2b2b2b] p-6 rounded-2xl shadow-lg space-y-6">
                 <div className="text-center mb-8">
-                    {/* <Coin result={coinFace} /> */}
+                    <Coin result={coinFace} />
                 </div>
 
                 <div>

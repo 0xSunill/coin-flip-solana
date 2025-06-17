@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
+import {  Connection, Keypair, PublicKey, SystemProgram, Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 
 
-
+const connection = new Connection(
+    `https://devnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY_DEVNET}`,
+    "confirmed"
+  );
 const treasury = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY!));
 const treasuryPubkey = new PublicKey(process.env.TREASURY_PUBLIC_KEY!);
 
 
 export async function POST(req: Request) {
     try {
+       
         const body = await req.json();
         console.log(body);
         const { userAddress, amount, side } = body;
