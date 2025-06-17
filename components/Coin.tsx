@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import '../app/coin.css'; // We'll define animation styles here
+import '../app/coin.css';
 
 export default function Coin({ result }: { result: 'heads' | 'tails' | null }) {
     const coinRef = useRef<HTMLDivElement>(null);
@@ -9,7 +9,7 @@ export default function Coin({ result }: { result: 'heads' | 'tails' | null }) {
     useEffect(() => {
         if (result && coinRef.current) {
             coinRef.current.classList.remove('heads', 'tails');
-            void coinRef.current.offsetWidth; // Trigger reflow to restart animation
+            void coinRef.current.offsetWidth; // Trigger reflow
             coinRef.current.classList.add(result);
         }
     }, [result]);
