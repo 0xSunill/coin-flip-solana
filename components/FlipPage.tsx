@@ -12,7 +12,7 @@ export default function FlipPage() {
     const [result, setResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [flipping, setFlipping] = useState(false);
-    // const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
+    const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
 
     const { publicKey, connected } = useWallet();
     // const { connection } = useConnection();
@@ -38,8 +38,10 @@ export default function FlipPage() {
             setError('Please connect your wallet.');
             return;
         }
-
-
+        setFlipping(true);
+        setResult(null);
+        setError(null);
+        setCoinFace(null);
 
         const res = await fetch('/api/flip', {
             method: 'POST',
@@ -51,34 +53,24 @@ export default function FlipPage() {
             })
         });
 
-        setFlipping(true);
-        setResult(null);
-        setError(null);
 
 
-        // const data = await res.json();
+
+        const data = await res.json();
 
 
-        // if (data.status === 'won') {
-        //     setResult(`🎉 You won! Coin landed on ${data.result}`);
-        // } else {
-        //     setResult(`😢 You lost! Coin landed on ${data.result}`);
-        // }
+        setTimeout(() => {
+            setCoinFace(data.result);
 
-        // const flip = Math.random() < 0.5 ? 'heads' : 'tails';
-        // setCoinFace(null); 
-        // setCoinFace(flip);
-        // setTimeout(() => {
+            if (data.status === 'won') {
+                setResult(`🎉 You won! Coin landed on ${data.result}`);
+            } else {
+                setResult(`😢 You lost! Coin landed on ${data.result}`);
+            }
+            setFlipping(false);
+        }, 3000);
 
-        //     const won = flip === choice;
-        //     setResult(
-        //         won
-        //             ? `🎉 You won! Coin landed on ${flip.toUpperCase()}`
-        //             : `😢 You lost! Coin landed on ${flip.toUpperCase()}`
-        //     );
 
-        //     setFlipping(false);
-        // }, 3000);
     };
 
     const isDisabled = !selectedBet || !choice || !connected || flipping;
