@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Coin from '@/components/Coin';
-import {  useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 
 const betOptions = [0.1, 0.25, 0.5, 0.75, 1];
 type FlipResult = {
     result: 'heads' | 'tails';
     status: 'won' | 'lost';
     message?: string;
-  };
-  
+};
 
 export default function FlipPage() {
     const [selectedBet, setSelectedBet] = useState<number | null>(null);
@@ -20,8 +20,8 @@ export default function FlipPage() {
     const [flipping, setFlipping] = useState(false);
     const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
     const [pendingResult, setPendingResult] = useState<FlipResult>(null);
-    const { publicKey, connected } = useWallet();
-    // const { connection } = useConnection();
+    const { publicKey, connected, sendTransaction } = useWallet();
+    const { connection } = useConnection();
     const [walletAddress, setWalletAddress] = useState('');
 
     useEffect(() => {
@@ -30,22 +30,43 @@ export default function FlipPage() {
         }
     }, [connected, publicKey]);
 
+    const treasuryKey = process.env.NEXT_PUBLIC_TREASURY_PUBLIC_KEY;
+    if (!treasuryKey) {
+        throw new Error('TREASURY_PUBLIC_KEY is not defined in environment variables');
+    }
+    const treasuryPubkey = new PublicKey(treasuryKey);
 
     const handleFlip = async () => {
         if (!selectedBet || !choice) {
             setError('Please select bet amount and side.');
             return;
         }
-
+        if (!publicKey) {
+            setError("Wallet not connected");
+            return;
+        }
         if (!connected) {
             setError('Please connect your wallet.');
             return;
         }
 
         setFlipping(true);
-        setResult(null);
-        setError(null);
-        setCoinFace(null);
+        // setResult(null);
+        // setError(null);
+        // setCoinFace(null);
+
+
+        const tx = new Transaction().add(
+            SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: treasuryPubkey,
+                lamports: Math.floor(selectedBet * 1e9)
+            })
+        )
+
+        const signature = await sendTransaction(tx, connection);
+        // await comformTx =
+
 
         const res = await fetch('/api/flip', {
             method: 'POST',
@@ -54,6 +75,7 @@ export default function FlipPage() {
                 userAddress: walletAddress,
                 amount: selectedBet,
                 side: choice,
+                userTxSignature: signature
             }),
         });
 
