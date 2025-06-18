@@ -51,40 +51,58 @@ export default function FlipPage() {
         }
 
         setFlipping(true);
-        // setResult(null);
-        // setError(null);
-        // setCoinFace(null);
+        setError(null);
+        setResult(null);
+        setCoinFace(null);
 
+        try {
+            const tx = new Transaction().add(
+                SystemProgram.transfer({
+                    fromPubkey: publicKey,
+                    toPubkey: treasuryPubkey,
+                    lamports: Math.floor(selectedBet * 1e9),
+                })
+            );
 
-        const tx = new Transaction().add(
-            SystemProgram.transfer({
-                fromPubkey: publicKey,
-                toPubkey: treasuryPubkey,
-                lamports: Math.floor(selectedBet * 1e9)
-            })
-        )
+            const signature = await sendTransaction(tx, connection);
+            await connection.confirmTransaction(signature, 'confirmed');
 
-        const signature = await sendTransaction(tx, connection);
-        // await comformTx =
+            const res = await fetch('/api/flip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userAddress: walletAddress,
+                    amount: selectedBet,
+                    side: choice,
+                    userTxSignature: signature,
+                }),
+            });
 
+            const data = await res.json();
 
-        const res = await fetch('/api/flip', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                userAddress: walletAddress,
-                amount: selectedBet,
-                side: choice,
-                userTxSignature: signature
-            }),
-        });
+            if (!res.ok) {
+                throw new Error(data?.error || 'Something went wrong');
+            }
 
-        const data = await res.json();
+            setCoinFace(data.result); // e.g., 'heads' or 'tails'
+            setPendingResult(data);   // entire response object
+        } catch (err: unknown) {
+            console.error('Flip error:', err);
 
-        setCoinFace(data.result); // Start coin animation
+            let message = 'An error occurred during the flip.';
 
-        // Show result after animation ends (see below)
-        setPendingResult(data);
+            if (err instanceof Error) {
+                message = err.message;
+            } else if (typeof err === 'string') {
+                message = err;
+            }
+
+            setError(message);
+        } finally {
+            setFlipping(false);
+            setSelectedBet(null);
+            setChoice(null);
+        }
     };
 
     const isDisabled = !selectedBet || !choice || !connected || flipping;
