@@ -1,16 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Coin from '@/components/Coin';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 const betOptions = [0.1, 0.25, 0.5, 0.75, 1];
-type FlipResult = {
-    result: 'heads' | 'tails';
-    status: 'won' | 'lost';
-    message?: string;
-};
 
 export default function FlipPage() {
     const [selectedBet, setSelectedBet] = useState<number | null>(null);
@@ -19,90 +13,54 @@ export default function FlipPage() {
     const [error, setError] = useState<string | null>(null);
     const [flipping, setFlipping] = useState(false);
     const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
-    const [pendingResult, setPendingResult] = useState<FlipResult>(null);
-    const { publicKey, connected, sendTransaction } = useWallet();
-    const { connection } = useConnection();
-    const [walletAddress, setWalletAddress] = useState('');
 
-    useEffect(() => {
-        if (connected && publicKey) {
-            setWalletAddress(publicKey.toBase58());
-        }
-    }, [connected, publicKey]);
-
-    const treasuryKey = process.env.NEXT_PUBLIC_TREASURY_PUBLIC_KEY;
-    if (!treasuryKey) {
-        throw new Error('TREASURY_PUBLIC_KEY is not defined in environment variables');
-    }
-    const treasuryPubkey = new PublicKey(treasuryKey);
+    const { connected, publicKey } = useWallet();
 
     const handleFlip = async () => {
         if (!selectedBet || !choice) {
             setError('Please select bet amount and side.');
             return;
         }
-        if (!publicKey) {
-            setError("Wallet not connected");
-            return;
-        }
+
         if (!connected) {
             setError('Please connect your wallet.');
             return;
         }
 
         setFlipping(true);
-        setError(null);
         setResult(null);
-        setCoinFace(null);
+        setError(null);
 
-        try {
-            const tx = new Transaction().add(
-                SystemProgram.transfer({
-                    fromPubkey: publicKey,
-                    toPubkey: treasuryPubkey,
-                    lamports: Math.floor(selectedBet * 1e9),
-                })
-            );
+        const res = await fetch('/api/flip', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                userAddress: publicKey,
+                amount: selectedBet,
+                side: choice,
+                // userTxSignature: signature,
+            }),
+        });
 
-            const signature = await sendTransaction(tx, connection);
-            await connection.confirmTransaction(signature, 'confirmed');
 
-            const res = await fetch('/api/flip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userAddress: walletAddress,
-                    amount: selectedBet,
-                    side: choice,
-                    userTxSignature: signature,
-                }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data?.error || 'Something went wrong');
-            }
-
-            setCoinFace(data.result); // e.g., 'heads' or 'tails'
-            setPendingResult(data);   // entire response object
-        } catch (err: unknown) {
-            console.error('Flip error:', err);
-
-            let message = 'An error occurred during the flip.';
-
-            if (err instanceof Error) {
-                message = err.message;
-            } else if (typeof err === 'string') {
-                message = err;
-            }
-
-            setError(message);
-        } finally {
-            setFlipping(false);
-            setSelectedBet(null);
-            setChoice(null);
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data?.error || 'Something went wrong');
         }
+        // const flip = Math.random() < 0.5 ? 'heads' : 'tails';
+        setCoinFace(null); // reset coin
+        setCoinFace(data.result);
+
+        setTimeout(() => {
+
+            if (data.status == "won") {
+                setResult(`🎉 You won! Coin landed on ${data.result.toUpperCase()}`)
+            } else {
+                setResult(`😢 You lost! Coin landed on ${data.result.toUpperCase()}`)
+            }
+
+            setFlipping(false);
+        }, 3000);
     };
 
     const isDisabled = !selectedBet || !choice || !connected || flipping;
@@ -116,23 +74,7 @@ export default function FlipPage() {
 
             <div className="w-full max-w-md bg-[#2b2b2b] p-6 rounded-2xl shadow-lg space-y-6">
                 <div className="text-center mb-8">
-                    <Coin
-                        result={coinFace}
-                        flipping={flipping}
-                        onAnimationEnd={() => {
-                            if (pendingResult) {
-                                const data = pendingResult;
-                                if (data.status === 'won') {
-                                    setResult(`🎉 You won! Coin landed on ${data.result}`);
-                                } else {
-                                    setResult(`😢 You lost! Coin landed on ${data.result}`);
-                                }
-                                setFlipping(false);
-                                setPendingResult(null);
-                            }
-                        }}
-                    />
-
+                    <Coin result={coinFace} />
                 </div>
 
                 <div>
