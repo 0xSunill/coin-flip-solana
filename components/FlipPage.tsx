@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Coin from '@/components/Coin';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 
 const betOptions = [0.1, 0.25, 0.5, 0.75, 1];
 
@@ -14,14 +15,25 @@ export default function FlipPage() {
     const [flipping, setFlipping] = useState(false);
     const [coinFace, setCoinFace] = useState<'heads' | 'tails' | null>(null);
 
-    const { connected, publicKey } = useWallet();
+    const { publicKey, connected, sendTransaction } = useWallet();
+    const { connection } = useConnection();
+
+    const treasuryKey = process.env.NEXT_PUBLIC_TREASURY_PUBLIC_KEY;
+    if (!treasuryKey) {
+        throw new Error('TREASURY_PUBLIC_KEY is not defined in environment variables');
+    }
+    const treasuryPubkey = new PublicKey(treasuryKey);
+
 
     const handleFlip = async () => {
         if (!selectedBet || !choice) {
             setError('Please select bet amount and side.');
             return;
         }
-
+        if (!publicKey) {
+            setError("Wallet not connected");
+            return;
+        }
         if (!connected) {
             setError('Please connect your wallet.');
             return;
@@ -31,6 +43,20 @@ export default function FlipPage() {
         setResult(null);
         setError(null);
 
+
+
+        const tx = new Transaction().add(
+            SystemProgram.transfer({
+                fromPubkey: publicKey,
+                toPubkey: treasuryPubkey,
+                lamports: Math.floor(selectedBet * 1e9),
+            })
+        );
+
+        const signature = await sendTransaction(tx, connection);
+        await connection.confirmTransaction(signature, 'confirmed');
+
+
         const res = await fetch('/api/flip', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -38,7 +64,7 @@ export default function FlipPage() {
                 userAddress: publicKey,
                 amount: selectedBet,
                 side: choice,
-                // userTxSignature: signature,
+                userTxSignature: signature,
             }),
         });
 
