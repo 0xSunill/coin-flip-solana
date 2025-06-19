@@ -39,11 +39,6 @@ export async function POST(req: Request) {
 
     const reward = Math.floor(betLamports * 2 * 0.95);
 
-
-
-   
-
-
     
     const tx = new Transaction().add(
       SystemProgram.transfer({
@@ -60,7 +55,7 @@ export async function POST(req: Request) {
     const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
     console.log('Reward tx signature:', signature);
     // const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
-    // const signature = connection.sendTransaction(tx, [treasury])
+    const signature = connection.sendTransaction(tx, [treasury])
 
     // console.log('Reward tx signature:', signature);
     return NextResponse.json({
