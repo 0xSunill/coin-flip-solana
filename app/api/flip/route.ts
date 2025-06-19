@@ -52,8 +52,8 @@ export async function POST(req: Request) {
     tx.feePayer = treasuryPubkey;
     tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
-    const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
-    console.log('Reward tx signature:', signature);
+    // const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
+    // console.log('Reward tx signature:', signature);
     // const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
     const signature = connection.sendTransaction(tx, [treasury])
 
