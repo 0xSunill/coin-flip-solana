@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       result: flipResult,
       status: 'won',
-      // signature,
+      signature,
     });
   } catch (error: any) {
     console.error(error);
