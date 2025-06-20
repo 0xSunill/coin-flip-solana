@@ -1,5 +1,5 @@
-import { connection, NextResponse } from 'next/server';
-import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction} from '@solana/web3.js';
+import { NextResponse } from 'next/server';
+import { Connection, Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     const reward = Math.floor(betLamports * 2 * 0.95);
 
-    
+
     const tx = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: treasuryPubkey,
@@ -63,8 +63,20 @@ export async function POST(req: Request) {
       status: 'won',
       signature,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
-    return NextResponse.json({ error: 'Server error', details: error.message }, { status: 500 });
+
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: 'Server error', details: error.message },
+        { status: 500 }
+      );
+    }
+
+    // fallback in case it's not an instance of Error
+    return NextResponse.json(
+      { error: 'Server error', details: 'Unknown error occurred' },
+      { status: 500 }
+    );
   }
 }
