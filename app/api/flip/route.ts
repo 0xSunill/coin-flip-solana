@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Connection, Keypair, PublicKey, SystemProgram, Transaction } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 
 
@@ -54,10 +54,10 @@ export async function POST(req: Request) {
 
     // const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
     // console.log('Reward tx signature:', signature);
-    // const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
-    const signature = connection.sendTransaction(tx, [treasury])
+    const signature = await sendAndConfirmTransaction(connection, tx, [treasury]);
+    // const signature = connection.sendTransaction(tx, [treasury])
 
-    // console.log('Reward tx signature:', signature);
+    console.log('Reward tx signature:', signature);
     return NextResponse.json({
       result: flipResult,
       status: 'won',
