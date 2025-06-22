@@ -103,12 +103,19 @@ export default function FlipPage() {
                 setFlipping(false);
             }, 3000);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Flip error:', err);
-            setError(err.message || 'An unexpected error occurred');
+        
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unexpected error occurred');
+            }
+        
             setFlipping(false);
             setCoinFace(null);
         }
+    
     };
 
     const isDisabled = !selectedBet || !choice || !connected || flipping;
